@@ -1,0 +1,11 @@
+[package]
+name = "ad_core"
+edition.workspace = true
+version.workspace = true
+license.workspace = true
+description = "Pure Rust reverse-mode automatic differentiation engine"
+
+[dependencies]
+
+[dev-dependencies]
+rand = "0.8"

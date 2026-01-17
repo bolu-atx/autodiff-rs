@@ -1,0 +1,13 @@
+[package]
+name = "ad_cli"
+edition.workspace = true
+version.workspace = true
+license.workspace = true
+description = "CLI demo for the autodiff library"
+
+[[bin]]
+name = "ad_cli"
+path = "src/main.rs"
+
+[dependencies]
+ad_core.workspace = true

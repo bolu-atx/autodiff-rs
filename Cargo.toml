@@ -1,0 +1,15 @@
+[workspace]
+resolver = "2"
+members = [
+    "ad_core",
+    "ad_py",
+    "ad_cli",
+]
+
+[workspace.package]
+edition = "2021"
+version = "0.1.0"
+license = "MIT"
+
+[workspace.dependencies]
+ad_core = { path = "ad_core" }
