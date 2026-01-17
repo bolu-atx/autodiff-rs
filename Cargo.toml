@@ -10,6 +10,16 @@ members = [
 edition = "2021"
 version = "0.1.0"
 license = "MIT"
+repository = "https://github.com/bolu-atx/autodiff-rs"
+keywords = ["autodiff", "automatic-differentiation", "machine-learning", "gradients"]
+categories = ["mathematics", "science"]
 
 [workspace.dependencies]
 ad_core = { path = "ad_core" }
+
+[workspace.metadata.docs.rs]
+all-features = true
+rustdoc-args = ["--cfg", "docsrs"]
+
+[profile.dev.package."*"]
+opt-level = 2

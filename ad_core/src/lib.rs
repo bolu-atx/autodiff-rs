@@ -1,25 +1,32 @@
 //! # ad_core - Reverse-mode Automatic Differentiation Engine
 //!
 //! This crate provides a simple reverse-mode autodiff implementation for scalar-valued
-//! functions f: R^n -> R. It builds a computation graph during the forward pass and
+//! functions f: ℝⁿ → ℝ. It builds a computation graph during the forward pass and
 //! computes gradients via reverse accumulation (backpropagation).
 //!
-//! ## Example
+//! ## Overview
+//!
+//! Automatic differentiation computes exact derivatives (not numerical approximations)
+//! by applying the chain rule systematically. Reverse-mode autodiff is efficient for
+//! functions with many inputs and few outputs, making it ideal for gradient-based
+//! optimization (e.g., training neural networks).
+//!
+//! ## Quick Start
 //!
 //! ```
 //! use ad_core::{var, constant};
 //!
-//! // Create variables
+//! // Create variables (the inputs we differentiate with respect to)
 //! let x = var("x", 2.0);
 //! let y = var("y", 3.0);
 //!
 //! // Build an expression: z = x * y + sin(x)
 //! let z = &x * &y + x.sin();
 //!
-//! // Evaluate
+//! // Evaluate the expression
 //! assert!((z.value() - 6.909297426825682).abs() < 1e-10);
 //!
-//! // Compute gradients
+//! // Compute gradients via reverse-mode autodiff
 //! let grads = z.backward();
 //! let dz_dx = grads.wrt(&x).unwrap();
 //! let dz_dy = grads.wrt(&y).unwrap();
@@ -29,6 +36,38 @@
 //! assert!((dz_dx - 2.5838531634528574).abs() < 1e-10);
 //! assert!((dz_dy - 2.0).abs() < 1e-10);
 //! ```
+//!
+//! ## Supported Operations
+//!
+//! | Category | Operations |
+//! |----------|------------|
+//! | Arithmetic | `+`, `-`, `*`, `/`, unary `-` |
+//! | Power | [`Expr::powf`] (x^c for constant c) |
+//! | Transcendental | [`Expr::exp`], [`Expr::log`], [`Expr::sin`], [`Expr::cos`] |
+//!
+//! ## Architecture
+//!
+//! - **[`Expr`]**: Reference-counted handle to a computation graph node. Cloning is O(1).
+//! - **[`Gradients`]**: Result of backward pass, queryable by expression or variable name.
+//! - **[`finite_diff_grad`]**: Utility for validating gradients against numerical derivatives.
+//!
+//! ## Example: Using with Multiple Variables
+//!
+//! ```
+//! use ad_core::{var, constant, Gradients};
+//!
+//! // Compute gradients for f(x,y) = x^2 * y + y^3
+//! let x = var("x", 2.0);
+//! let y = var("y", 3.0);
+//!
+//! let f = &x.powf(2.0) * &y + y.powf(3.0);
+//!
+//! let grads = f.backward();
+//! // df/dx = 2xy = 12
+//! // df/dy = x^2 + 3y^2 = 4 + 27 = 31
+//! assert!((grads.wrt(&x).unwrap() - 12.0).abs() < 1e-10);
+//! assert!((grads.wrt(&y).unwrap() - 31.0).abs() < 1e-10);
+//! ```
 
 mod node;
 mod ops;
@@ -37,7 +76,7 @@ mod finite_diff;
 
 pub use node::{Expr, NodeId};
 pub use backward::Gradients;
-pub use finite_diff::finite_diff_grad;
+pub use finite_diff::{finite_diff_grad, max_grad_error};
 
 /// Create a new variable with the given name and value.
 ///
