@@ -11,4 +11,7 @@ crate-type = ["cdylib"]
 
 [dependencies]
 ad_core.workspace = true
+ad_tensor = { path = "../ad_tensor" }
+ad_backend_cpu = { path = "../ad_backend_cpu" }
 pyo3 = { version = "0.27", features = ["extension-module"] }
+numpy = "0.27"

@@ -1,0 +1,21 @@
+[package]
+name = "ad_backend_metal"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+keywords.workspace = true
+categories.workspace = true
+description = "Metal GPU backend for ad_tensor (macOS only)"
+
+[dependencies]
+ad_tensor = { path = "../ad_tensor" }
+ad_backend_cpu = { path = "../ad_backend_cpu" }
+
+[target.'cfg(target_os = "macos")'.dependencies]
+metal = "0.31"
+objc = "0.2"
+block = "0.1"
+
+[dev-dependencies]
+rand = "0.8"

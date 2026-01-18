@@ -1,0 +1,17 @@
+[package]
+name = "ad_nn"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+keywords.workspace = true
+categories.workspace = true
+description = "Neural network layers, losses, and optimizers for ad_tensor"
+
+[dependencies]
+ad_tensor = { path = "../ad_tensor" }
+ad_backend_cpu = { path = "../ad_backend_cpu" }
+rand = "0.8"
+
+[dev-dependencies]
+rand_distr = "0.4"

@@ -4,6 +4,10 @@ members = [
     "ad_core",
     "ad_py",
     "ad_cli",
+    "ad_tensor",
+    "ad_backend_cpu",
+    "ad_backend_metal",
+    "ad_nn",
 ]
 
 [workspace.package]
