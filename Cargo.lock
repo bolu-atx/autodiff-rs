@@ -41,6 +41,7 @@ name = "ad_nn"
 version = "0.1.0"
 dependencies = [
  "ad_backend_cpu",
+ "ad_backend_metal",
  "ad_tensor",
  "rand",
  "rand_distr",

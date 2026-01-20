@@ -1,20 +1,19 @@
 //! Activation functions.
 
-use ad_backend_cpu::CpuBackend;
 use ad_tensor::prelude::*;
 
 /// ReLU activation: max(0, x)
-pub fn relu(x: &Tensor<CpuBackend>) -> Tensor<CpuBackend> {
+pub fn relu<B: Backend>(x: &Tensor<B>) -> Tensor<B> {
     x.relu()
 }
 
 /// Sigmoid activation: 1 / (1 + exp(-x))
-pub fn sigmoid(x: &Tensor<CpuBackend>) -> Tensor<CpuBackend> {
+pub fn sigmoid<B: Backend>(x: &Tensor<B>) -> Tensor<B> {
     x.sigmoid()
 }
 
 /// Tanh activation: tanh(x)
-pub fn tanh(x: &Tensor<CpuBackend>) -> Tensor<CpuBackend> {
+pub fn tanh<B: Backend>(x: &Tensor<B>) -> Tensor<B> {
     x.tanh()
 }
 
@@ -22,7 +21,7 @@ pub fn tanh(x: &Tensor<CpuBackend>) -> Tensor<CpuBackend> {
 ///
 /// Computes softmax along the last dimension (axis=-1).
 /// Uses numerically stable computation: exp(x - max(x)) / sum(exp(x - max(x)))
-pub fn softmax(x: &Tensor<CpuBackend>) -> Tensor<CpuBackend> {
+pub fn softmax<B: Backend>(x: &Tensor<B>) -> Tensor<B> {
     let ndim = x.ndim();
     let axis = if ndim > 0 { ndim - 1 } else { 0 };
 
@@ -44,7 +43,7 @@ pub fn softmax(x: &Tensor<CpuBackend>) -> Tensor<CpuBackend> {
 ///
 /// Computed as: x - max(x) - log(sum(exp(x - max(x))))
 /// This is more numerically stable than log(softmax(x)).
-pub fn log_softmax(x: &Tensor<CpuBackend>) -> Tensor<CpuBackend> {
+pub fn log_softmax<B: Backend>(x: &Tensor<B>) -> Tensor<B> {
     let ndim = x.ndim();
     let axis = if ndim > 0 { ndim - 1 } else { 0 };
 
@@ -62,6 +61,7 @@ pub fn log_softmax(x: &Tensor<CpuBackend>) -> Tensor<CpuBackend> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use ad_backend_cpu::CpuBackend;
 
     #[test]
     fn test_relu() {

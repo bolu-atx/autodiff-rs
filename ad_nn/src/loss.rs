@@ -1,10 +1,9 @@
 //! Loss functions.
 
-use ad_backend_cpu::CpuBackend;
 use ad_tensor::prelude::*;
 
 /// Mean Squared Error loss: mean((pred - target)^2)
-pub fn mse_loss(pred: &Tensor<CpuBackend>, target: &Tensor<CpuBackend>) -> Tensor<CpuBackend> {
+pub fn mse_loss<B: Backend>(pred: &Tensor<B>, target: &Tensor<B>) -> Tensor<B> {
     let diff = pred - target;
     let sq = &diff * &diff;
     sq.mean(None, false)
@@ -14,10 +13,10 @@ pub fn mse_loss(pred: &Tensor<CpuBackend>, target: &Tensor<CpuBackend>) -> Tenso
 ///
 /// Computes: mean(max(logits, 0) - logits * targets + log(1 + exp(-|logits|)))
 /// This is numerically stable.
-pub fn binary_cross_entropy_with_logits(
-    logits: &Tensor<CpuBackend>,
-    targets: &Tensor<CpuBackend>,
-) -> Tensor<CpuBackend> {
+pub fn binary_cross_entropy_with_logits<B: Backend>(
+    logits: &Tensor<B>,
+    targets: &Tensor<B>,
+) -> Tensor<B> {
     // Numerically stable BCE:
     // max(logits, 0) - logits * targets + log(1 + exp(-|logits|))
 
@@ -31,7 +30,7 @@ pub fn binary_cross_entropy_with_logits(
     let abs_logits = logits.maximum(&(-logits));
 
     // log(1 + exp(-|logits|))
-    let one = Tensor::<CpuBackend>::ones(logits.shape());
+    let one = Tensor::<B>::ones(logits.shape());
     let log_term = (&one + (-&abs_logits).exp()).log();
 
     // Combine
@@ -46,10 +45,13 @@ pub fn binary_cross_entropy_with_logits(
 /// - `targets` are class indices (0 to num_classes-1), shape [batch]
 ///
 /// Returns the mean negative log probability of the correct class.
+///
+/// Note: This function is CPU-only because it requires direct data access via `as_slice()`.
+/// For generic backend support, use [`soft_cross_entropy_loss`] with one-hot encoded targets.
 pub fn cross_entropy_loss(
-    logits: &Tensor<CpuBackend>,
+    logits: &Tensor<ad_backend_cpu::CpuBackend>,
     targets: &[usize],
-) -> Tensor<CpuBackend> {
+) -> Tensor<ad_backend_cpu::CpuBackend> {
     let log_probs = crate::activations::log_softmax(logits);
 
     // Gather the log probabilities of the correct classes
@@ -66,7 +68,7 @@ pub fn cross_entropy_loss(
 
     // Return mean loss
     let sum: f32 = losses.iter().sum();
-    Tensor::<CpuBackend>::scalar(sum / batch_size as f32)
+    Tensor::<ad_backend_cpu::CpuBackend>::scalar(sum / batch_size as f32)
 }
 
 /// Soft Cross-Entropy loss with target probabilities.
@@ -76,10 +78,10 @@ pub fn cross_entropy_loss(
 /// - `targets` has shape [batch, num_classes] with probabilities (one-hot or soft labels)
 ///
 /// Returns: -mean(sum(targets * log_softmax(logits)))
-pub fn soft_cross_entropy_loss(
-    logits: &Tensor<CpuBackend>,
-    targets: &Tensor<CpuBackend>,
-) -> Tensor<CpuBackend> {
+pub fn soft_cross_entropy_loss<B: Backend>(
+    logits: &Tensor<B>,
+    targets: &Tensor<B>,
+) -> Tensor<B> {
     let log_probs = crate::activations::log_softmax(logits);
 
     // -targets * log_probs
@@ -92,6 +94,7 @@ pub fn soft_cross_entropy_loss(
 #[cfg(test)]
 mod tests {
     use super::*;
+    use ad_backend_cpu::CpuBackend;
 
     #[test]
     fn test_mse_loss() {
