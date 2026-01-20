@@ -64,24 +64,22 @@ mod tests {
     use ad_backend_cpu::CpuBackend;
 
     #[test]
-    fn test_relu() {
-        let x = Tensor::<CpuBackend>::from_vec(
-            vec![-2.0, -1.0, 0.0, 1.0, 2.0],
-            Shape::new(vec![5]),
-        );
+    fn test_relu_cpu() {
+        let x =
+            Tensor::<CpuBackend>::from_vec(vec![-2.0, -1.0, 0.0, 1.0, 2.0], Shape::new(vec![5]));
         let y = relu(&x);
         assert_eq!(y.as_slice(), &[0.0, 0.0, 0.0, 1.0, 2.0]);
     }
 
     #[test]
-    fn test_sigmoid() {
+    fn test_sigmoid_cpu() {
         let x = Tensor::<CpuBackend>::from_vec(vec![0.0], Shape::new(vec![1]));
         let y = sigmoid(&x);
         assert!((y.as_slice()[0] - 0.5).abs() < 1e-6);
     }
 
     #[test]
-    fn test_softmax() {
+    fn test_softmax_cpu() {
         let x = Tensor::<CpuBackend>::from_vec(vec![1.0, 2.0, 3.0], Shape::new(vec![3]));
         let y = softmax(&x);
 
@@ -95,7 +93,7 @@ mod tests {
     }
 
     #[test]
-    fn test_log_softmax() {
+    fn test_log_softmax_cpu() {
         let x = Tensor::<CpuBackend>::from_vec(vec![1.0, 2.0, 3.0], Shape::new(vec![3]));
         let y = log_softmax(&x);
 
@@ -103,5 +101,60 @@ mod tests {
         let exp_y: Vec<f32> = y.as_slice().iter().map(|v| v.exp()).collect();
         let sum: f32 = exp_y.iter().sum();
         assert!((sum - 1.0).abs() < 1e-5);
+    }
+
+    #[cfg(target_os = "macos")]
+    mod metal {
+        use super::*;
+        use ad_backend_metal::MetalBackend;
+
+        #[test]
+        fn test_relu_metal() {
+            let x = Tensor::<MetalBackend>::from_vec(
+                vec![-2.0, -1.0, 0.0, 1.0, 2.0],
+                Shape::new(vec![5]),
+            );
+            let y = relu(&x);
+            assert_eq!(y.as_slice(), &[0.0, 0.0, 0.0, 1.0, 2.0]);
+        }
+
+        #[test]
+        fn test_sigmoid_metal() {
+            let x = Tensor::<MetalBackend>::from_vec(vec![0.0], Shape::new(vec![1]));
+            let y = sigmoid(&x);
+            assert!((y.as_slice()[0] - 0.5).abs() < 1e-6);
+        }
+
+        #[test]
+        fn test_tanh_metal() {
+            let x = Tensor::<MetalBackend>::from_vec(vec![0.0], Shape::new(vec![1]));
+            let y = tanh(&x);
+            assert!((y.as_slice()[0] - 0.0).abs() < 1e-6);
+        }
+
+        #[test]
+        fn test_softmax_metal() {
+            let x = Tensor::<MetalBackend>::from_vec(vec![1.0, 2.0, 3.0], Shape::new(vec![3]));
+            let y = softmax(&x);
+
+            // Softmax should sum to 1
+            let sum: f32 = y.as_slice().iter().sum();
+            assert!((sum - 1.0).abs() < 1e-5);
+
+            // Larger values should have larger probabilities
+            assert!(y.as_slice()[2] > y.as_slice()[1]);
+            assert!(y.as_slice()[1] > y.as_slice()[0]);
+        }
+
+        #[test]
+        fn test_log_softmax_metal() {
+            let x = Tensor::<MetalBackend>::from_vec(vec![1.0, 2.0, 3.0], Shape::new(vec![3]));
+            let y = log_softmax(&x);
+
+            // exp(log_softmax) should sum to 1
+            let exp_y: Vec<f32> = y.as_slice().iter().map(|v| v.exp()).collect();
+            let sum: f32 = exp_y.iter().sum();
+            assert!((sum - 1.0).abs() < 1e-5);
+        }
     }
 }
